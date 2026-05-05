@@ -1,8 +1,10 @@
 import '../global.css';
 import { useEffect } from 'react';
+import { Text } from 'react-native';
 import { Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useScanStore } from '@/store/scanStore';
+import { COLORS } from '@/constants/theme';
 
 export default function RootLayout() {
   const loadHistory = useScanStore((s) => s.loadHistory);
@@ -13,12 +15,19 @@ export default function RootLayout() {
 
   return (
     <>
-      <StatusBar style="auto" />
+      <StatusBar style="light" />
       <Tabs
         screenOptions={{
-          headerStyle: { backgroundColor: '#1E3A5F' },
+          headerStyle: { backgroundColor: COLORS.primary },
           headerTintColor: '#fff',
-          tabBarActiveTintColor: '#1E3A5F',
+          headerTitleStyle: { fontWeight: '700' },
+          tabBarActiveTintColor: COLORS.primary,
+          tabBarInactiveTintColor: COLORS.textSecondary,
+          tabBarStyle: {
+            backgroundColor: COLORS.card,
+            borderTopColor: COLORS.border,
+            borderTopWidth: 1,
+          },
         }}
       >
         <Tabs.Screen
@@ -26,8 +35,8 @@ export default function RootLayout() {
           options={{
             title: '바코드 스캔',
             tabBarLabel: '스캔',
-            tabBarIcon: ({ color }) => (
-              <TabIcon emoji="📷" color={color} />
+            tabBarIcon: ({ color, focused }) => (
+              <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.5, color }}>📷</Text>
             ),
           }}
         />
@@ -36,17 +45,12 @@ export default function RootLayout() {
           options={{
             title: '스캔 기록',
             tabBarLabel: '기록',
-            tabBarIcon: ({ color }) => (
-              <TabIcon emoji="📋" color={color} />
+            tabBarIcon: ({ color, focused }) => (
+              <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.5, color }}>📋</Text>
             ),
           }}
         />
       </Tabs>
     </>
   );
-}
-
-function TabIcon({ emoji, color }: { emoji: string; color: string }) {
-  const { Text } = require('react-native');
-  return <Text style={{ fontSize: 20, opacity: color === '#1E3A5F' ? 1 : 0.5 }}>{emoji}</Text>;
 }

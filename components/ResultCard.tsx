@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Linking, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Linking, Alert, StyleSheet } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system';
 import { ParsedBarcode, formatBarcodeType, getBarcodeFormatInfo } from '@/utils/barcodeParser';
+import { COLORS, RADIUS, SPACING } from '@/constants/theme';
 
 type Props = {
   barcode: ParsedBarcode;
@@ -13,18 +14,30 @@ type Props = {
   onClose?: () => void;
 };
 
+const TYPE_COLOR: Record<string, string> = {
+  url: '#3B82F6',
+  email: '#10B981',
+  phone: '#F59E0B',
+  text: COLORS.textSecondary,
+};
+
+const OPEN_LABEL: Record<string, string> = {
+  url: '브라우저에서 열기',
+  email: '메일 앱 열기',
+  phone: '전화 걸기',
+  text: '',
+};
+
 export default function ResultCard({ barcode, format, photoUri, scannedAt, onClose }: Props) {
   const [copying, setCopying] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const formatInfo = getBarcodeFormatInfo(format);
+  const accentColor = TYPE_COLOR[barcode.type];
 
-  // ── 액션 핸들러 ──────────────────────────────────────────
   const handleOpenAction = () => {
     if (barcode.type === 'url') {
-      Linking.openURL(barcode.value).catch(() =>
-        Alert.alert('오류', 'URL을 열 수 없습니다.')
-      );
+      Linking.openURL(barcode.value).catch(() => Alert.alert('오류', 'URL을 열 수 없습니다.'));
     } else if (barcode.type === 'email') {
       Linking.openURL(`mailto:${barcode.value}`);
     } else if (barcode.type === 'phone') {
@@ -88,117 +101,145 @@ export default function ResultCard({ barcode, format, photoUri, scannedAt, onClo
     );
   };
 
-  // ── 색상 테마 ────────────────────────────────────────────
-  const typeColor: Record<string, string> = {
-    url: '#3B82F6',
-    email: '#10B981',
-    phone: '#F59E0B',
-    text: '#6B7280',
-  };
-
-  const actionLabel: Record<string, string> = {
-    url: '브라우저에서 열기',
-    email: '메일 앱 열기',
-    phone: '전화 걸기',
-    text: '',
-  };
-
-  const color = typeColor[barcode.type];
-
   return (
-    <View className="bg-white rounded-2xl shadow-md mx-4 overflow-hidden">
-      {/* 헤더 */}
-      <View className="px-5 pt-5 pb-3">
-        <View className="flex-row justify-between items-start">
-          <View style={{ backgroundColor: color + '20' }} className="px-3 py-1 rounded-full">
-            <Text style={{ color }} className="text-xs font-semibold">
-              {barcode.label}
-            </Text>
+    <View style={styles.card}>
+      {/* 상단 색상 바 */}
+      <View style={[styles.topBar, { backgroundColor: accentColor }]} />
+
+      <View style={styles.body}>
+        {/* 헤더 행 */}
+        <View style={styles.headerRow}>
+          <View style={[styles.typeBadge, { backgroundColor: accentColor + '20' }]}>
+            <Text style={[styles.typeBadgeText, { color: accentColor }]}>{barcode.label}</Text>
           </View>
-          <View className="flex-row items-center gap-2">
-            {formatInfo && (
-              <TouchableOpacity onPress={handleShowFormatInfo} className="flex-row items-center">
-                <View className="bg-gray-100 px-2 py-1 rounded-full flex-row items-center">
-                  <Text className="text-xs text-gray-500">{formatInfo.displayName}</Text>
-                  <Text className="text-xs text-gray-400 ml-1">ⓘ</Text>
-                </View>
-              </TouchableOpacity>
-            )}
-            {!formatInfo && (
-              <Text className="text-xs text-gray-400">{formatBarcodeType(format)}</Text>
-            )}
+          <View style={styles.headerRight}>
+            <TouchableOpacity onPress={handleShowFormatInfo} style={styles.formatChip}>
+              <Text style={styles.formatChipText}>
+                {formatInfo ? formatInfo.displayName : formatBarcodeType(format)}
+              </Text>
+              {formatInfo && <Text style={styles.infoIcon}> ⓘ</Text>}
+            </TouchableOpacity>
             {onClose && (
-              <TouchableOpacity onPress={onClose} className="ml-1">
-                <Text className="text-gray-400 text-lg">✕</Text>
+              <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+                <Text style={styles.closeBtnText}>✕</Text>
               </TouchableOpacity>
             )}
           </View>
         </View>
 
         {/* 바코드 값 */}
-        <Text className="text-base text-gray-800 mt-3 leading-relaxed" selectable>
+        <Text style={styles.value} selectable numberOfLines={3}>
           {barcode.value}
         </Text>
 
         {scannedAt && (
-          <Text className="text-xs text-gray-400 mt-2">
-            {new Date(scannedAt).toLocaleString('ko-KR')}
-          </Text>
+          <Text style={styles.timestamp}>{new Date(scannedAt).toLocaleString('ko-KR')}</Text>
         )}
       </View>
 
-      {/* 액션 버튼 행 */}
-      <View className="flex-row border-t border-gray-100">
-        <ActionButton label="값 복사" emoji="📋" onPress={handleCopyValue} />
-        <ActionButton
-          label={copying ? '복사 중…' : '이미지 복사'}
+      {/* 액션 버튼 3종 */}
+      <View style={styles.actionRow}>
+        <ActionBtn emoji="📋" label="값 복사" onPress={handleCopyValue} />
+        <View style={styles.dividerV} />
+        <ActionBtn
           emoji="🖼️"
+          label={copying ? '복사 중…' : '이미지 복사'}
           onPress={handleCopyImage}
           disabled={!photoUri || copying}
         />
-        <ActionButton
-          label={saving ? '저장 중…' : '갤러리 저장'}
+        <View style={styles.dividerV} />
+        <ActionBtn
           emoji="💾"
+          label={saving ? '저장 중…' : '갤러리 저장'}
           onPress={handleSaveToGallery}
           disabled={!photoUri || saving}
-          last
         />
       </View>
 
-      {/* 메인 액션 버튼 (URL/이메일/전화) */}
-      {barcode.type !== 'text' && (
-        <View className="px-5 pb-5 pt-3">
+      {/* 메인 CTA 영역 */}
+      <View style={styles.ctaArea}>
+        {barcode.type !== 'text' && (
           <TouchableOpacity
             onPress={handleOpenAction}
-            style={{ backgroundColor: color }}
-            className="py-3 rounded-xl items-center"
+            style={[styles.primaryBtn, { backgroundColor: COLORS.primary }]}
           >
-            <Text className="text-white font-semibold">{actionLabel[barcode.type]}</Text>
+            <Text style={styles.primaryBtnText}>{OPEN_LABEL[barcode.type]}</Text>
           </TouchableOpacity>
-        </View>
-      )}
+        )}
+      </View>
     </View>
   );
 }
 
-type ActionButtonProps = {
-  label: string;
+type ActionBtnProps = {
   emoji: string;
+  label: string;
   onPress: () => void;
   disabled?: boolean;
-  last?: boolean;
 };
 
-function ActionButton({ label, emoji, onPress, disabled = false, last = false }: ActionButtonProps) {
+function ActionBtn({ emoji, label, onPress, disabled = false }: ActionBtnProps) {
   return (
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled}
-      className={`flex-1 py-3 items-center${last ? '' : ' border-r border-gray-100'}`}
-      style={{ opacity: disabled ? 0.35 : 1 }}
+      style={[styles.actionBtn, disabled && styles.actionBtnDisabled]}
     >
-      <Text className="text-lg">{emoji}</Text>
-      <Text className="text-xs text-gray-500 mt-1">{label}</Text>
+      <Text style={styles.actionEmoji}>{emoji}</Text>
+      <Text style={styles.actionLabel}>{label}</Text>
     </TouchableOpacity>
   );
 }
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: COLORS.card,
+    borderRadius: RADIUS.xl,
+    marginHorizontal: SPACING.md,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 8,
+  },
+  topBar: { height: 4 },
+  body: { paddingHorizontal: SPACING.md, paddingTop: SPACING.md, paddingBottom: SPACING.sm },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  typeBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: RADIUS.pill },
+  typeBadgeText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.3 },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  formatChip: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: COLORS.background,
+    paddingHorizontal: 8, paddingVertical: 4, borderRadius: RADIUS.pill,
+  },
+  formatChipText: { fontSize: 11, color: COLORS.textSecondary, fontWeight: '500' },
+  infoIcon: { fontSize: 11, color: COLORS.primary },
+  closeBtn: {
+    width: 28, height: 28, borderRadius: 14,
+    backgroundColor: COLORS.background,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  closeBtnText: { fontSize: 13, color: COLORS.textSecondary },
+  value: {
+    fontSize: 15, color: COLORS.textPrimary, fontWeight: '500',
+    marginTop: 12, lineHeight: 22,
+  },
+  timestamp: { fontSize: 11, color: COLORS.textSecondary, marginTop: 6 },
+  actionRow: {
+    flexDirection: 'row',
+    borderTopWidth: 1, borderTopColor: COLORS.border,
+    borderBottomWidth: 1, borderBottomColor: COLORS.border,
+  },
+  dividerV: { width: 1, backgroundColor: COLORS.border },
+  actionBtn: { flex: 1, alignItems: 'center', paddingVertical: 12 },
+  actionBtnDisabled: { opacity: 0.3 },
+  actionEmoji: { fontSize: 18 },
+  actionLabel: { fontSize: 10, color: COLORS.textSecondary, marginTop: 3, fontWeight: '500' },
+  ctaArea: { paddingHorizontal: SPACING.md, paddingVertical: SPACING.md },
+  primaryBtn: {
+    paddingVertical: 15, borderRadius: RADIUS.pill, alignItems: 'center',
+  },
+  primaryBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+});

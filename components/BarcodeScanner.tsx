@@ -1,10 +1,15 @@
 import React, { useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
+import { COLORS, RADIUS } from '@/constants/theme';
 
 type Props = {
   onScanned: (value: string, format: string, photoUri?: string) => void;
 };
+
+const FRAME_SIZE = 240;
+const CORNER_SIZE = 28;
+const CORNER_WIDTH = 4;
 
 export default function BarcodeScanner({ onScanned }: Props) {
   const [permission, requestPermission] = useCameraPermissions();
@@ -24,46 +29,38 @@ export default function BarcodeScanner({ onScanned }: Props) {
       });
       photoUri = photo?.uri;
     } catch {
-      // 촬영 실패해도 스캔 결과는 전달
+      // 촬영 실패해도 스캔 결과 전달
     }
 
     onScanned(result.data, result.type, photoUri);
-
-    setTimeout(() => {
-      cooldown.current = false;
-    }, 2000);
+    setTimeout(() => { cooldown.current = false; }, 2000);
   };
 
   if (!permission) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <Text className="text-gray-500">카메라 권한 확인 중...</Text>
+      <View style={styles.center}>
+        <Text style={styles.grayText}>카메라 권한 확인 중...</Text>
       </View>
     );
   }
 
   if (!permission.granted) {
     return (
-      <View className="flex-1 items-center justify-center px-8">
-        <Text className="text-4xl mb-4">📷</Text>
-        <Text className="text-lg font-semibold text-gray-800 mb-2 text-center">
-          카메라 접근 권한 필요
-        </Text>
-        <Text className="text-sm text-gray-500 mb-6 text-center">
-          바코드 스캔을 위해 카메라 권한이 필요합니다.
-        </Text>
-        <TouchableOpacity
-          onPress={requestPermission}
-          className="bg-blue-500 px-8 py-3 rounded-xl"
-        >
-          <Text className="text-white font-semibold">권한 허용</Text>
+      <View style={styles.center}>
+        <View style={styles.permissionIcon}>
+          <Text style={{ fontSize: 36 }}>📷</Text>
+        </View>
+        <Text style={styles.permissionTitle}>카메라 접근 권한 필요</Text>
+        <Text style={styles.permissionDesc}>바코드 스캔을 위해 카메라 권한이 필요합니다.</Text>
+        <TouchableOpacity onPress={requestPermission} style={styles.permissionBtn}>
+          <Text style={styles.permissionBtnText}>권한 허용</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
   return (
-    <View className="flex-1">
+    <View style={{ flex: 1 }}>
       <CameraView
         ref={cameraRef}
         style={StyleSheet.absoluteFill}
@@ -79,34 +76,102 @@ export default function BarcodeScanner({ onScanned }: Props) {
         onBarcodeScanned={handleBarcode}
       />
 
-      {/* 스캔 가이드 오버레이 */}
-      <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        <View className="flex-1 bg-black/50 items-center justify-center">
-          <View style={styles.scanFrame} />
-          <Text className="text-white text-sm mt-4 opacity-80">
-            바코드를 사각형 안에 맞춰주세요
-          </Text>
+      {/* 스캔 오버레이 */}
+      <View style={[StyleSheet.absoluteFill, styles.overlay]} pointerEvents="none">
+        <View style={styles.frame}>
+          {/* 모서리 마커 4개 */}
+          <View style={[styles.corner, styles.cornerTL]} />
+          <View style={[styles.corner, styles.cornerTR]} />
+          <View style={[styles.corner, styles.cornerBL]} />
+          <View style={[styles.corner, styles.cornerBR]} />
         </View>
+        <Text style={styles.guideText}>바코드를 사각형 안에 맞춰주세요</Text>
       </View>
 
       {/* 플래시 토글 */}
       <TouchableOpacity
         onPress={() => setTorch((v) => !v)}
-        className="absolute bottom-8 self-center bg-white/20 px-6 py-3 rounded-full"
+        style={[styles.torchBtn, torch && styles.torchBtnActive]}
       >
-        <Text className="text-white text-lg">{torch ? '🔦 끄기' : '🔦 켜기'}</Text>
+        <Text style={[styles.torchText, torch && styles.torchTextActive]}>
+          {torch ? '🔦 끄기' : '🔦 켜기'}
+        </Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scanFrame: {
-    width: 240,
-    height: 240,
-    borderWidth: 2,
-    borderColor: '#fff',
-    borderRadius: 16,
-    backgroundColor: 'transparent',
+  center: {
+    flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32,
+    backgroundColor: COLORS.background,
   },
+  grayText: { color: COLORS.textSecondary },
+  permissionIcon: {
+    width: 80, height: 80, borderRadius: 40,
+    backgroundColor: COLORS.primaryLight,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 20,
+  },
+  permissionTitle: {
+    fontSize: 18, fontWeight: '700', color: COLORS.textPrimary,
+    marginBottom: 8, textAlign: 'center',
+  },
+  permissionDesc: {
+    fontSize: 14, color: COLORS.textSecondary,
+    textAlign: 'center', marginBottom: 28, lineHeight: 20,
+  },
+  permissionBtn: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 40, paddingVertical: 14,
+    borderRadius: RADIUS.pill,
+  },
+  permissionBtnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  overlay: {
+    alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.overlay,
+  },
+  frame: {
+    width: FRAME_SIZE, height: FRAME_SIZE,
+    position: 'relative',
+  },
+  corner: {
+    position: 'absolute',
+    width: CORNER_SIZE, height: CORNER_SIZE,
+    borderColor: COLORS.primary,
+  },
+  cornerTL: {
+    top: 0, left: 0,
+    borderTopWidth: CORNER_WIDTH, borderLeftWidth: CORNER_WIDTH,
+    borderTopLeftRadius: RADIUS.sm,
+  },
+  cornerTR: {
+    top: 0, right: 0,
+    borderTopWidth: CORNER_WIDTH, borderRightWidth: CORNER_WIDTH,
+    borderTopRightRadius: RADIUS.sm,
+  },
+  cornerBL: {
+    bottom: 0, left: 0,
+    borderBottomWidth: CORNER_WIDTH, borderLeftWidth: CORNER_WIDTH,
+    borderBottomLeftRadius: RADIUS.sm,
+  },
+  cornerBR: {
+    bottom: 0, right: 0,
+    borderBottomWidth: CORNER_WIDTH, borderRightWidth: CORNER_WIDTH,
+    borderBottomRightRadius: RADIUS.sm,
+  },
+  guideText: {
+    color: '#fff', fontSize: 13, marginTop: 20, opacity: 0.9, letterSpacing: 0.2,
+  },
+  torchBtn: {
+    position: 'absolute', bottom: 40, alignSelf: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: 28, paddingVertical: 12,
+    borderRadius: RADIUS.pill,
+    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.4)',
+  },
+  torchBtnActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  torchText: { color: '#fff', fontSize: 15, fontWeight: '600' },
+  torchTextActive: { color: '#fff' },
 });
