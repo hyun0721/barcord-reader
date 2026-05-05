@@ -1,3 +1,7 @@
+export { getBarcodeFormatInfo, BARCODE_FORMATS } from './barcodeFormats';
+export type { BarcodeFormatInfo, BarcodeCategory } from './barcodeFormats';
+import { BARCODE_FORMATS, normalizeBarcodeType } from './barcodeFormats';
+
 export type ParsedBarcode = {
   type: 'url' | 'email' | 'phone' | 'text';
   label: string;
@@ -18,19 +22,6 @@ export function parseBarcode(value: string): ParsedBarcode {
 }
 
 export function formatBarcodeType(format: string): string {
-  const map: Record<string, string> = {
-    qr: 'QR Code',
-    ean13: 'EAN-13',
-    ean8: 'EAN-8',
-    upc_a: 'UPC-A',
-    upc_e: 'UPC-E',
-    code128: 'Code 128',
-    code39: 'Code 39',
-    pdf417: 'PDF417',
-    datamatrix: 'DataMatrix',
-    aztec: 'Aztec',
-    itf14: 'ITF-14',
-    codabar: 'Codabar',
-  };
-  return map[format.toLowerCase()] ?? format;
+  const key = normalizeBarcodeType(format);
+  return BARCODE_FORMATS[key]?.displayName ?? format;
 }

@@ -5,12 +5,13 @@ export type ScanRecord = {
   id: string;
   value: string;
   format: string;
+  photoUri?: string;
   scannedAt: string;
 };
 
 type ScanStore = {
   history: ScanRecord[];
-  addScan: (value: string, format: string) => Promise<void>;
+  addScan: (value: string, format: string, photoUri?: string) => Promise<void>;
   loadHistory: () => Promise<void>;
   clearHistory: () => Promise<void>;
 };
@@ -20,11 +21,12 @@ const STORAGE_KEY = '@scan_history';
 export const useScanStore = create<ScanStore>((set, get) => ({
   history: [],
 
-  addScan: async (value, format) => {
+  addScan: async (value, format, photoUri) => {
     const record: ScanRecord = {
       id: Date.now().toString(),
       value,
       format,
+      photoUri,
       scannedAt: new Date().toISOString(),
     };
     const next = [record, ...get().history].slice(0, 100);

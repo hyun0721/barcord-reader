@@ -1,16 +1,26 @@
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  Alert,
-  SafeAreaView,
-  Modal,
+  View, Text, FlatList, TouchableOpacity,
+  Alert, SafeAreaView, Modal, StyleSheet,
 } from 'react-native';
 import { useScanStore, ScanRecord } from '@/store/scanStore';
 import ResultCard from '@/components/ResultCard';
 import { parseBarcode, formatBarcodeType } from '@/utils/barcodeParser';
+import { COLORS, RADIUS, SPACING } from '@/constants/theme';
+
+const TYPE_DOT: Record<string, string> = {
+  url: '#3B82F6',
+  email: '#10B981',
+  phone: '#F59E0B',
+  text: COLORS.textSecondary,
+};
+
+function getContentType(value: string) {
+  if (/^https?:\/\//i.test(value)) return 'url';
+  if (/^mailto:|@/.test(value)) return 'email';
+  if (/^tel:|^\+?[\d\s\-()]{7,}$/.test(value)) return 'phone';
+  return 'text';
+}
 
 export default function HistoryScreen() {
   const { history, clearHistory } = useScanStore();
@@ -25,42 +35,47 @@ export default function HistoryScreen() {
 
   if (history.length === 0) {
     return (
-      <SafeAreaView className="flex-1 bg-gray-50 items-center justify-center">
-        <Text className="text-5xl mb-4">📋</Text>
-        <Text className="text-lg font-semibold text-gray-600">스캔 기록이 없습니다</Text>
-        <Text className="text-sm text-gray-400 mt-1">바코드를 스캔하면 여기에 기록됩니다.</Text>
+      <SafeAreaView style={styles.emptyContainer}>
+        <View style={styles.emptyIconWrap}>
+          <Text style={{ fontSize: 36 }}>📋</Text>
+        </View>
+        <Text style={styles.emptyTitle}>스캔 기록이 없습니다</Text>
+        <Text style={styles.emptyDesc}>바코드를 스캔하면 여기에 기록됩니다.</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50">
+    <SafeAreaView style={styles.container}>
       <FlatList
         data={history}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingVertical: 12 }}
+        contentContainerStyle={{ paddingVertical: SPACING.sm }}
         ListHeaderComponent={
-          <TouchableOpacity onPress={handleClear} className="mx-4 mb-2 items-end">
-            <Text className="text-red-400 text-sm">전체 삭제</Text>
+          <TouchableOpacity onPress={handleClear} style={styles.clearBtn}>
+            <Text style={styles.clearBtnText}>전체 삭제</Text>
           </TouchableOpacity>
         }
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() => setSelected(item)}
-            className="mx-4 mb-2 bg-white rounded-xl px-4 py-3 flex-row items-center shadow-sm"
-          >
-            <View className="flex-1 mr-3">
-              <Text className="text-xs text-gray-400 mb-1">{formatBarcodeType(item.format)}</Text>
-              <Text className="text-sm text-gray-800 font-medium" numberOfLines={1}>
-                {item.value}
-              </Text>
-              <Text className="text-xs text-gray-400 mt-1">
-                {new Date(item.scannedAt).toLocaleString('ko-KR')}
-              </Text>
-            </View>
-            <Text className="text-gray-300">›</Text>
-          </TouchableOpacity>
-        )}
+        renderItem={({ item }) => {
+          const contentType = getContentType(item.value);
+          const dotColor = TYPE_DOT[contentType];
+          return (
+            <TouchableOpacity onPress={() => setSelected(item)} style={styles.card}>
+              <View style={[styles.dot, { backgroundColor: dotColor }]} />
+              <View style={styles.cardBody}>
+                <Text style={styles.cardFormat}>{formatBarcodeType(item.format)}</Text>
+                <Text style={styles.cardValue} numberOfLines={1}>{item.value}</Text>
+                <Text style={styles.cardTime}>
+                  {new Date(item.scannedAt).toLocaleString('ko-KR')}
+                </Text>
+              </View>
+              <View style={styles.cardRight}>
+                {item.photoUri && <Text style={styles.photoIcon}>🖼️</Text>}
+                <Text style={styles.chevron}>›</Text>
+              </View>
+            </TouchableOpacity>
+          );
+        }}
       />
 
       <Modal
@@ -69,11 +84,12 @@ export default function HistoryScreen() {
         animationType="slide"
         onRequestClose={() => setSelected(null)}
       >
-        <View className="flex-1 justify-end bg-black/50 pb-8">
+        <View style={styles.modalBackdrop}>
           {selected && (
             <ResultCard
               barcode={parseBarcode(selected.value)}
               format={selected.format}
+              photoUri={selected.photoUri}
               scannedAt={selected.scannedAt}
               onClose={() => setSelected(null)}
             />
@@ -83,3 +99,43 @@ export default function HistoryScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: COLORS.background },
+  emptyContainer: {
+    flex: 1, backgroundColor: COLORS.background,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  emptyIconWrap: {
+    width: 88, height: 88, borderRadius: 44,
+    backgroundColor: COLORS.primaryLight,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 20,
+  },
+  emptyTitle: {
+    fontSize: 17, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 6,
+  },
+  emptyDesc: { fontSize: 13, color: COLORS.textSecondary },
+  clearBtn: { alignItems: 'flex-end', paddingHorizontal: SPACING.md, paddingVertical: 6 },
+  clearBtnText: { fontSize: 13, color: '#EF4444', fontWeight: '500' },
+  card: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: COLORS.card,
+    marginHorizontal: SPACING.md, marginBottom: 8,
+    borderRadius: RADIUS.lg, paddingVertical: 14, paddingHorizontal: SPACING.md,
+    shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 }, elevation: 2,
+  },
+  dot: { width: 10, height: 10, borderRadius: 5, marginRight: 12 },
+  cardBody: { flex: 1 },
+  cardFormat: { fontSize: 11, color: COLORS.textSecondary, marginBottom: 3, fontWeight: '500' },
+  cardValue: { fontSize: 14, color: COLORS.textPrimary, fontWeight: '600' },
+  cardTime: { fontSize: 11, color: COLORS.textSecondary, marginTop: 3 },
+  cardRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  photoIcon: { fontSize: 13 },
+  chevron: { fontSize: 20, color: COLORS.border, fontWeight: '300' },
+  modalBackdrop: {
+    flex: 1, justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingBottom: SPACING.xl,
+  },
+});
