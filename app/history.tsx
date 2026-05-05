@@ -58,6 +58,7 @@ export default function HistoryScreen() {
                 {new Date(item.scannedAt).toLocaleString('ko-KR')}
               </Text>
             </View>
+            {item.photoUri && <Text className="text-gray-300 mr-1">🖼️</Text>}
             <Text className="text-gray-300">›</Text>
           </TouchableOpacity>
         )}
@@ -74,6 +75,7 @@ export default function HistoryScreen() {
             <ResultCard
               barcode={parseBarcode(selected.value)}
               format={selected.format}
+              photoUri={selected.photoUri}
               scannedAt={selected.scannedAt}
               onClose={() => setSelected(null)}
             />

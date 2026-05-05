@@ -5,16 +5,16 @@ import ResultCard from '@/components/ResultCard';
 import { parseBarcode } from '@/utils/barcodeParser';
 import { useScanStore } from '@/store/scanStore';
 
-type LastScan = { value: string; format: string } | null;
+type LastScan = { value: string; format: string; photoUri?: string } | null;
 
 export default function ScanScreen() {
   const [lastScan, setLastScan] = useState<LastScan>(null);
   const addScan = useScanStore((s) => s.addScan);
 
   const handleScanned = useCallback(
-    (value: string, format: string) => {
-      setLastScan({ value, format });
-      addScan(value, format);
+    (value: string, format: string, photoUri?: string) => {
+      setLastScan({ value, format, photoUri });
+      addScan(value, format, photoUri);
     },
     [addScan]
   );
@@ -34,6 +34,7 @@ export default function ScanScreen() {
             <ResultCard
               barcode={parseBarcode(lastScan.value)}
               format={lastScan.format}
+              photoUri={lastScan.photoUri}
               onClose={() => setLastScan(null)}
             />
           )}

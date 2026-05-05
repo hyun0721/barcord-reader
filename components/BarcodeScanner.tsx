@@ -1,20 +1,34 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
 
 type Props = {
-  onScanned: (value: string, format: string) => void;
+  onScanned: (value: string, format: string, photoUri?: string) => void;
 };
 
 export default function BarcodeScanner({ onScanned }: Props) {
   const [permission, requestPermission] = useCameraPermissions();
   const [torch, setTorch] = useState(false);
+  const cameraRef = useRef<CameraView>(null);
   const cooldown = useRef(false);
 
-  const handleBarcode = (result: BarcodeScanningResult) => {
+  const handleBarcode = async (result: BarcodeScanningResult) => {
     if (cooldown.current) return;
     cooldown.current = true;
-    onScanned(result.data, result.type);
+
+    let photoUri: string | undefined;
+    try {
+      const photo = await cameraRef.current?.takePictureAsync({
+        quality: 0.85,
+        skipProcessing: true,
+      });
+      photoUri = photo?.uri;
+    } catch {
+      // 촬영 실패해도 스캔 결과는 전달
+    }
+
+    onScanned(result.data, result.type, photoUri);
+
     setTimeout(() => {
       cooldown.current = false;
     }, 2000);
@@ -51,6 +65,7 @@ export default function BarcodeScanner({ onScanned }: Props) {
   return (
     <View className="flex-1">
       <CameraView
+        ref={cameraRef}
         style={StyleSheet.absoluteFill}
         facing="back"
         enableTorch={torch}
