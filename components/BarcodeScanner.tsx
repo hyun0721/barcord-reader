@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
 import { COLORS, RADIUS } from '@/constants/theme';
 
@@ -48,7 +49,7 @@ export default function BarcodeScanner({ onScanned }: Props) {
     return (
       <View style={styles.center}>
         <View style={styles.permissionIcon}>
-          <Text style={{ fontSize: 36 }}>📷</Text>
+          <Ionicons name="camera-outline" size={36} color={COLORS.primary} />
         </View>
         <Text style={styles.permissionTitle}>카메라 접근 권한 필요</Text>
         <Text style={styles.permissionDesc}>바코드 스캔을 위해 카메라 권한이 필요합니다.</Text>
@@ -93,9 +94,17 @@ export default function BarcodeScanner({ onScanned }: Props) {
         onPress={() => setTorch((v) => !v)}
         style={[styles.torchBtn, torch && styles.torchBtnActive]}
       >
-        <Text style={[styles.torchText, torch && styles.torchTextActive]}>
-          {torch ? '🔦 끄기' : '🔦 켜기'}
-        </Text>
+        <View style={styles.torchInner}>
+          <Ionicons
+            name={torch ? 'flashlight' : 'flashlight-outline'}
+            size={15}
+            color="#fff"
+            style={{ marginRight: 6 }}
+          />
+          <Text style={[styles.torchText, torch && styles.torchTextActive]}>
+            {torch ? '끄기' : '켜기'}
+          </Text>
+        </View>
       </TouchableOpacity>
     </View>
   );
@@ -172,6 +181,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     borderColor: COLORS.primary,
   },
+  torchInner: { flexDirection: 'row', alignItems: 'center' },
   torchText: { color: '#fff', fontSize: 15, fontWeight: '600' },
   torchTextActive: { color: '#fff' },
 });

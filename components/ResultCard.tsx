@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
+import type { ComponentProps } from 'react';
 import { View, Text, TouchableOpacity, Linking, Alert, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system';
 import { ParsedBarcode, formatBarcodeType, getBarcodeFormatInfo } from '@/utils/barcodeParser';
 import { COLORS, RADIUS, SPACING } from '@/constants/theme';
+
+type IoniconsName = ComponentProps<typeof Ionicons>['name'];
 
 type Props = {
   barcode: ParsedBarcode;
@@ -117,11 +121,13 @@ export default function ResultCard({ barcode, format, photoUri, scannedAt, onClo
               <Text style={styles.formatChipText}>
                 {formatInfo ? formatInfo.displayName : formatBarcodeType(format)}
               </Text>
-              {formatInfo && <Text style={styles.infoIcon}> ⓘ</Text>}
+              {formatInfo && (
+                <Ionicons name="information-circle-outline" size={13} color={COLORS.primary} style={{ marginLeft: 2 }} />
+              )}
             </TouchableOpacity>
             {onClose && (
               <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-                <Text style={styles.closeBtnText}>✕</Text>
+                <Ionicons name="close" size={14} color={COLORS.textSecondary} />
               </TouchableOpacity>
             )}
           </View>
@@ -139,17 +145,17 @@ export default function ResultCard({ barcode, format, photoUri, scannedAt, onClo
 
       {/* 액션 버튼 3종 */}
       <View style={styles.actionRow}>
-        <ActionBtn emoji="📋" label="값 복사" onPress={handleCopyValue} />
+        <ActionBtn icon="clipboard-outline" label="값 복사" onPress={handleCopyValue} />
         <View style={styles.dividerV} />
         <ActionBtn
-          emoji="🖼️"
+          icon="image-outline"
           label={copying ? '복사 중…' : '이미지 복사'}
           onPress={handleCopyImage}
           disabled={!photoUri || copying}
         />
         <View style={styles.dividerV} />
         <ActionBtn
-          emoji="💾"
+          icon="save-outline"
           label={saving ? '저장 중…' : '갤러리 저장'}
           onPress={handleSaveToGallery}
           disabled={!photoUri || saving}
@@ -172,20 +178,20 @@ export default function ResultCard({ barcode, format, photoUri, scannedAt, onClo
 }
 
 type ActionBtnProps = {
-  emoji: string;
+  icon: IoniconsName;
   label: string;
   onPress: () => void;
   disabled?: boolean;
 };
 
-function ActionBtn({ emoji, label, onPress, disabled = false }: ActionBtnProps) {
+function ActionBtn({ icon, label, onPress, disabled = false }: ActionBtnProps) {
   return (
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled}
       style={[styles.actionBtn, disabled && styles.actionBtnDisabled]}
     >
-      <Text style={styles.actionEmoji}>{emoji}</Text>
+      <Ionicons name={icon} size={18} color={COLORS.textSecondary} />
       <Text style={styles.actionLabel}>{label}</Text>
     </TouchableOpacity>
   );
@@ -215,13 +221,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8, paddingVertical: 4, borderRadius: RADIUS.pill,
   },
   formatChipText: { fontSize: 11, color: COLORS.textSecondary, fontWeight: '500' },
-  infoIcon: { fontSize: 11, color: COLORS.primary },
   closeBtn: {
     width: 28, height: 28, borderRadius: 14,
     backgroundColor: COLORS.background,
     alignItems: 'center', justifyContent: 'center',
   },
-  closeBtnText: { fontSize: 13, color: COLORS.textSecondary },
   value: {
     fontSize: 15, color: COLORS.textPrimary, fontWeight: '500',
     marginTop: 12, lineHeight: 22,
@@ -235,7 +239,6 @@ const styles = StyleSheet.create({
   dividerV: { width: 1, backgroundColor: COLORS.border },
   actionBtn: { flex: 1, alignItems: 'center', paddingVertical: 12 },
   actionBtnDisabled: { opacity: 0.3 },
-  actionEmoji: { fontSize: 18 },
   actionLabel: { fontSize: 10, color: COLORS.textSecondary, marginTop: 3, fontWeight: '500' },
   ctaArea: { paddingHorizontal: SPACING.md, paddingVertical: SPACING.md },
   primaryBtn: {
