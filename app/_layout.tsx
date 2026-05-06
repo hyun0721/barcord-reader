@@ -1,8 +1,8 @@
 import '../global.css';
 import { useEffect } from 'react';
-import { Text } from 'react-native';
 import { Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
 import { useScanStore } from '@/store/scanStore';
 import { COLORS } from '@/constants/theme';
 
@@ -36,7 +36,7 @@ export default function RootLayout() {
             title: '바코드 스캔',
             tabBarLabel: '스캔',
             tabBarIcon: ({ color, focused }) => (
-              <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.5, color }}>📷</Text>
+              <Ionicons name="camera-outline" size={22} color={color} style={{ opacity: focused ? 1 : 0.5 }} />
             ),
           }}
         />
@@ -46,7 +46,7 @@ export default function RootLayout() {
             title: '스캔 기록',
             tabBarLabel: '기록',
             tabBarIcon: ({ color, focused }) => (
-              <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.5, color }}>📋</Text>
+              <Ionicons name="clipboard-outline" size={22} color={color} style={{ opacity: focused ? 1 : 0.5 }} />
             ),
           }}
         />

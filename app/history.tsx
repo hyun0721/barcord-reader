@@ -3,6 +3,7 @@ import {
   View, Text, FlatList, TouchableOpacity,
   Alert, SafeAreaView, Modal, StyleSheet,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useScanStore, ScanRecord } from '@/store/scanStore';
 import ResultCard from '@/components/ResultCard';
 import { parseBarcode, formatBarcodeType } from '@/utils/barcodeParser';
@@ -37,7 +38,7 @@ export default function HistoryScreen() {
     return (
       <SafeAreaView style={styles.emptyContainer}>
         <View style={styles.emptyIconWrap}>
-          <Text style={{ fontSize: 36 }}>📋</Text>
+          <Ionicons name="clipboard-outline" size={36} color={COLORS.primary} />
         </View>
         <Text style={styles.emptyTitle}>스캔 기록이 없습니다</Text>
         <Text style={styles.emptyDesc}>바코드를 스캔하면 여기에 기록됩니다.</Text>
@@ -70,7 +71,7 @@ export default function HistoryScreen() {
                 </Text>
               </View>
               <View style={styles.cardRight}>
-                {item.photoUri && <Text style={styles.photoIcon}>🖼️</Text>}
+                {item.photoUri && <Ionicons name="image-outline" size={14} color={COLORS.textSecondary} />}
                 <Text style={styles.chevron}>›</Text>
               </View>
             </TouchableOpacity>
@@ -131,7 +132,6 @@ const styles = StyleSheet.create({
   cardValue: { fontSize: 14, color: COLORS.textPrimary, fontWeight: '600' },
   cardTime: { fontSize: 11, color: COLORS.textSecondary, marginTop: 3 },
   cardRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  photoIcon: { fontSize: 13 },
   chevron: { fontSize: 20, color: COLORS.border, fontWeight: '300' },
   modalBackdrop: {
     flex: 1, justifyContent: 'flex-end',
