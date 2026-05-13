@@ -6,7 +6,7 @@ import * as Clipboard from 'expo-clipboard';
 import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system';
 import { ParsedBarcode, formatBarcodeType, getBarcodeFormatInfo } from '@/utils/barcodeParser';
-import { COLORS, RADIUS, SPACING } from '@/constants/theme';
+import { COLORS, RADIUS, SPACING, TYPE_COLORS } from '@/constants/theme';
 
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
 
@@ -16,13 +16,6 @@ type Props = {
   photoUri?: string;
   scannedAt?: string;
   onClose?: () => void;
-};
-
-const TYPE_COLOR: Record<string, string> = {
-  url: '#3B82F6',
-  email: '#10B981',
-  phone: '#F59E0B',
-  text: COLORS.textSecondary,
 };
 
 const OPEN_LABEL: Record<string, string> = {
@@ -37,7 +30,7 @@ export default function ResultCard({ barcode, format, photoUri, scannedAt, onClo
   const [saving, setSaving] = useState(false);
 
   const formatInfo = getBarcodeFormatInfo(format);
-  const accentColor = TYPE_COLOR[barcode.type];
+  const accentColor = TYPE_COLORS[barcode.type as keyof typeof TYPE_COLORS];
 
   const handleOpenAction = () => {
     if (barcode.type === 'url') {
@@ -244,5 +237,5 @@ const styles = StyleSheet.create({
   primaryBtn: {
     paddingVertical: 15, borderRadius: RADIUS.pill, alignItems: 'center',
   },
-  primaryBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  primaryBtnText: { color: COLORS.white, fontWeight: '700', fontSize: 15 },
 });

@@ -52,10 +52,10 @@ export default function ScanScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#111' },
+  container: { flex: 1, backgroundColor: COLORS.scannerBg },
   modalBackdrop: {
     flex: 1, justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: COLORS.modalOverlay,
     paddingBottom: SPACING.xl,
   },
   continueBtn: {
