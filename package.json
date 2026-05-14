@@ -4,8 +4,12 @@
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "ios:device": "expo run:ios --device",
+    "ios:iphone": "expo run:ios --device 00008140-001A504A00E3C01C",
+    "ios:device:release": "expo run:ios --device --configuration Release",
+    "ios:iphone:release": "expo run:ios --device 00008140-001A504A00E3C01C --configuration Release",
     "web": "expo start --web"
   },
   "dependencies": {
