@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useScanStore } from '@/store/scanStore';
 import { COLORS } from '@/constants/theme';
 
@@ -14,7 +15,7 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="light" />
       <Tabs
         screenOptions={{
@@ -51,6 +52,6 @@ export default function RootLayout() {
           }}
         />
       </Tabs>
-    </>
+    </GestureHandlerRootView>
   );
 }
