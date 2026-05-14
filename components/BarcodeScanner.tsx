@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
 import { COLORS, RADIUS } from '@/constants/theme';
+import IconWrap from '@/components/IconWrap';
 
 type Props = {
   onScanned: (value: string, format: string, photoUri?: string) => void;
@@ -48,9 +49,9 @@ export default function BarcodeScanner({ onScanned }: Props) {
   if (!permission.granted) {
     return (
       <View style={styles.center}>
-        <View style={styles.permissionIcon}>
+        <IconWrap size={80} style={{ marginBottom: 20 }}>
           <Ionicons name="camera-outline" size={36} color={COLORS.primary} />
-        </View>
+        </IconWrap>
         <Text style={styles.permissionTitle}>카메라 접근 권한 필요</Text>
         <Text style={styles.permissionDesc}>바코드 스캔을 위해 카메라 권한이 필요합니다.</Text>
         <TouchableOpacity onPress={requestPermission} style={styles.permissionBtn}>
@@ -116,11 +117,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   grayText: { color: COLORS.textSecondary },
-  permissionIcon: {
-    width: 80, height: 80, borderRadius: 40,
-    backgroundColor: COLORS.primaryLight,
-    alignItems: 'center', justifyContent: 'center', marginBottom: 20,
-  },
   permissionTitle: {
     fontSize: 18, fontWeight: '700', color: COLORS.textPrimary,
     marginBottom: 8, textAlign: 'center',
@@ -134,7 +130,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40, paddingVertical: 14,
     borderRadius: RADIUS.pill,
   },
-  permissionBtnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  permissionBtnText: { color: COLORS.white, fontWeight: '700', fontSize: 16 },
   overlay: {
     alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.overlay,
   },
@@ -168,7 +164,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: RADIUS.sm,
   },
   guideText: {
-    color: '#fff', fontSize: 13, marginTop: 20, opacity: 0.9, letterSpacing: 0.2,
+    color: COLORS.white, fontSize: 13, marginTop: 20, opacity: 0.9, letterSpacing: 0.2,
   },
   torchBtn: {
     position: 'absolute', bottom: 40, alignSelf: 'center',
@@ -182,6 +178,6 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
   },
   torchInner: { flexDirection: 'row', alignItems: 'center' },
-  torchText: { color: '#fff', fontSize: 15, fontWeight: '600' },
-  torchTextActive: { color: '#fff' },
+  torchText: { color: COLORS.white, fontSize: 15, fontWeight: '600' },
+  torchTextActive: { color: COLORS.white },
 });

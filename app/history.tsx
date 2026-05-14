@@ -6,22 +6,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useScanStore, ScanRecord } from '@/store/scanStore';
 import ResultCard from '@/components/ResultCard';
+import IconWrap from '@/components/IconWrap';
 import { parseBarcode, formatBarcodeType } from '@/utils/barcodeParser';
-import { COLORS, RADIUS, SPACING } from '@/constants/theme';
-
-const TYPE_DOT: Record<string, string> = {
-  url: '#3B82F6',
-  email: '#10B981',
-  phone: '#F59E0B',
-  text: COLORS.textSecondary,
-};
-
-function getContentType(value: string) {
-  if (/^https?:\/\//i.test(value)) return 'url';
-  if (/^mailto:|@/.test(value)) return 'email';
-  if (/^tel:|^\+?[\d\s\-()]{7,}$/.test(value)) return 'phone';
-  return 'text';
-}
+import { COLORS, RADIUS, SPACING, TYPE_COLORS } from '@/constants/theme';
 
 export default function HistoryScreen() {
   const { history, clearHistory } = useScanStore();
@@ -37,9 +24,9 @@ export default function HistoryScreen() {
   if (history.length === 0) {
     return (
       <SafeAreaView style={styles.emptyContainer}>
-        <View style={styles.emptyIconWrap}>
+        <IconWrap size={88} style={{ marginBottom: 20 }}>
           <Ionicons name="clipboard-outline" size={36} color={COLORS.primary} />
-        </View>
+        </IconWrap>
         <Text style={styles.emptyTitle}>스캔 기록이 없습니다</Text>
         <Text style={styles.emptyDesc}>바코드를 스캔하면 여기에 기록됩니다.</Text>
       </SafeAreaView>
@@ -58,8 +45,8 @@ export default function HistoryScreen() {
           </TouchableOpacity>
         }
         renderItem={({ item }) => {
-          const contentType = getContentType(item.value);
-          const dotColor = TYPE_DOT[contentType];
+          const contentType = parseBarcode(item.value).type;
+          const dotColor = TYPE_COLORS[contentType as keyof typeof TYPE_COLORS];
           return (
             <TouchableOpacity onPress={() => setSelected(item)} style={styles.card}>
               <View style={[styles.dot, { backgroundColor: dotColor }]} />
@@ -107,17 +94,12 @@ const styles = StyleSheet.create({
     flex: 1, backgroundColor: COLORS.background,
     alignItems: 'center', justifyContent: 'center',
   },
-  emptyIconWrap: {
-    width: 88, height: 88, borderRadius: 44,
-    backgroundColor: COLORS.primaryLight,
-    alignItems: 'center', justifyContent: 'center', marginBottom: 20,
-  },
   emptyTitle: {
     fontSize: 17, fontWeight: '700', color: COLORS.textPrimary, marginBottom: 6,
   },
   emptyDesc: { fontSize: 13, color: COLORS.textSecondary },
   clearBtn: { alignItems: 'flex-end', paddingHorizontal: SPACING.md, paddingVertical: 6 },
-  clearBtnText: { fontSize: 13, color: '#EF4444', fontWeight: '500' },
+  clearBtnText: { fontSize: 13, color: COLORS.danger, fontWeight: '500' },
   card: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: COLORS.card,
@@ -135,7 +117,7 @@ const styles = StyleSheet.create({
   chevron: { fontSize: 20, color: COLORS.border, fontWeight: '300' },
   modalBackdrop: {
     flex: 1, justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: COLORS.modalOverlay,
     paddingBottom: SPACING.xl,
   },
 });
