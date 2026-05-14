@@ -62,7 +62,8 @@ export default function ResultCard({ barcode, format, photoUri, scannedAt, onClo
       const base64 = await FileSystem.readAsStringAsync(photoUri, { encoding: 'base64' as any });
       await Clipboard.setImageAsync(base64);
       Alert.alert('복사 완료', '이미지가 클립보드에 복사되었습니다.');
-    } catch {
+    } catch (e) {
+      console.error('[handleCopyImage]', e);
       Alert.alert('오류', '이미지를 복사하는 데 실패했습니다.');
     } finally {
       setCopying(false);

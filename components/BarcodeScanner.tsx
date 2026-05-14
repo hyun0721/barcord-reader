@@ -26,7 +26,6 @@ export default function BarcodeScanner({ onScanned }: Props) {
     try {
       const photo = await cameraRef.current?.takePictureAsync({
         quality: 0.85,
-        skipProcessing: true,
       });
       photoUri = photo?.uri;
     } catch {
