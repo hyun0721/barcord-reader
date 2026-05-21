@@ -10,7 +10,8 @@
     "ios:iphone": "expo run:ios --device 00008140-001A504A00E3C01C",
     "ios:device:release": "expo run:ios --device --configuration Release",
     "ios:iphone:release": "expo run:ios --device 00008140-001A504A00E3C01C --configuration Release",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "prebuild:clean": "expo prebuild --clean"
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
