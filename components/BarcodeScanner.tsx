@@ -22,14 +22,9 @@ export default function BarcodeScanner({ onScanned }: Props) {
   const [showZoomLabel, setShowZoomLabel] = useState(false);
   const cameraRef = useRef<CameraView>(null);
   const cooldown = useRef(false);
-  const zoomRef = useRef(0.05);
+  const zoomShared = useSharedValue(0.05);  // UI 스레드 단일 소스
   const baseZoom = useSharedValue(0.05);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const updateZoom = (val: number) => {
-    zoomRef.current = val;
-    setZoom(val);
-  };
 
   const showZoomIndicator = () => {
     setShowZoomLabel(true);
@@ -39,11 +34,15 @@ export default function BarcodeScanner({ onScanned }: Props) {
 
   const pinchGesture = Gesture.Pinch()
     .onStart(() => {
-      baseZoom.value = zoomRef.current;
+      // zoomShared는 UI 스레드 값이므로 항상 최신값 보장
+      baseZoom.value = zoomShared.value;
     })
     .onUpdate((e) => {
-      const next = Math.min(Math.max(baseZoom.value * e.scale, 0), 0.8);
-      runOnJS(updateZoom)(next);
+      // additive 방식: 현재 줌에 scale 변화량을 선형으로 더함
+      // 감도 0.5 → 손가락을 2배 벌리면 zoom이 +0.5 증가 (빠른 응답)
+      const next = Math.min(Math.max(baseZoom.value + (e.scale - 1) * 0.5, 0), 0.8);
+      zoomShared.value = next;
+      runOnJS(setZoom)(next);
       runOnJS(showZoomIndicator)();
     });
 
