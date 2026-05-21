@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import type { ComponentProps } from 'react';
 import {
   View, Text, Image, Modal, ScrollView,
-  TouchableOpacity, Linking, Alert, StyleSheet,
-  SafeAreaView, Dimensions,
+  TouchableOpacity, Pressable, Linking, Alert, StyleSheet,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
@@ -91,11 +91,11 @@ export default function HistoryDetailModal({ record, onClose }: Props) {
     <Modal
       visible={!!record}
       transparent
-      animationType="slide"
+      animationType="fade"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.backdrop}>
-        <View style={styles.sheet}>
+      <Pressable style={styles.backdrop} onPress={onClose}>
+        <View style={styles.sheet} onStartShouldSetResponder={() => true}>
           {/* 닫기 버튼 */}
           <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
             <Ionicons name="close" size={20} color={COLORS.textSecondary} />
@@ -176,7 +176,7 @@ export default function HistoryDetailModal({ record, onClose }: Props) {
             )}
           </ScrollView>
         </View>
-      </SafeAreaView>
+      </Pressable>
     </Modal>
   );
 }
@@ -205,13 +205,13 @@ const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: COLORS.modalOverlay,
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
+    paddingHorizontal: SPACING.lg,
   },
   sheet: {
     backgroundColor: COLORS.card,
-    borderTopLeftRadius: RADIUS.xl,
-    borderTopRightRadius: RADIUS.xl,
-    maxHeight: '92%',
+    borderRadius: RADIUS.xl,
+    maxHeight: '85%',
     overflow: 'hidden',
   },
   closeBtn: {
