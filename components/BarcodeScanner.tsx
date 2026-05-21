@@ -2,6 +2,8 @@ import React, { useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { useSharedValue, runOnJS } from 'react-native-reanimated';
 import { COLORS, RADIUS } from '@/constants/theme';
 import IconWrap from '@/components/IconWrap';
 
@@ -16,8 +18,36 @@ const CORNER_WIDTH = 4;
 export default function BarcodeScanner({ onScanned }: Props) {
   const [permission, requestPermission] = useCameraPermissions();
   const [torch, setTorch] = useState(false);
+  const [zoom, setZoom] = useState(0.05);
+  const [showZoomLabel, setShowZoomLabel] = useState(false);
   const cameraRef = useRef<CameraView>(null);
   const cooldown = useRef(false);
+  const zoomRef = useRef(0.05);
+  const baseZoom = useSharedValue(0.05);
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const updateZoom = (val: number) => {
+    zoomRef.current = val;
+    setZoom(val);
+  };
+
+  const showZoomIndicator = () => {
+    setShowZoomLabel(true);
+    if (hideTimer.current) clearTimeout(hideTimer.current);
+    hideTimer.current = setTimeout(() => setShowZoomLabel(false), 1500);
+  };
+
+  const pinchGesture = Gesture.Pinch()
+    .onStart(() => {
+      baseZoom.value = zoomRef.current;
+    })
+    .onUpdate((e) => {
+      const next = Math.min(Math.max(baseZoom.value * e.scale, 0), 0.8);
+      runOnJS(updateZoom)(next);
+      runOnJS(showZoomIndicator)();
+    });
+
+  const zoomLabel = `${(1 + zoom * 6).toFixed(1)}x`;
 
   const handleBarcode = async (result: BarcodeScanningResult) => {
     if (cooldown.current) return;
@@ -61,52 +91,61 @@ export default function BarcodeScanner({ onScanned }: Props) {
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      <CameraView
-        ref={cameraRef}
-        style={StyleSheet.absoluteFill}
-        facing="back"
-        enableTorch={torch}
-        barcodeScannerSettings={{
-          barcodeTypes: [
-            'qr', 'ean13', 'ean8', 'upc_a', 'upc_e',
-            'code128', 'code39', 'pdf417', 'datamatrix',
-            'aztec', 'itf14', 'codabar',
-          ],
-        }}
-        onBarcodeScanned={handleBarcode}
-      />
+    <GestureDetector gesture={pinchGesture}>
+      <View style={{ flex: 1 }}>
+        <CameraView
+          ref={cameraRef}
+          style={StyleSheet.absoluteFill}
+          facing="back"
+          zoom={zoom}
+          enableTorch={torch}
+          barcodeScannerSettings={{
+            barcodeTypes: [
+              'qr', 'ean13', 'ean8', 'upc_a', 'upc_e',
+              'code128', 'code39', 'pdf417', 'datamatrix',
+              'aztec', 'itf14', 'codabar',
+            ],
+          }}
+          onBarcodeScanned={handleBarcode}
+        />
 
-      {/* 스캔 오버레이 */}
-      <View style={[StyleSheet.absoluteFill, styles.overlay]} pointerEvents="none">
-        <View style={styles.frame}>
-          {/* 모서리 마커 4개 */}
-          <View style={[styles.corner, styles.cornerTL]} />
-          <View style={[styles.corner, styles.cornerTR]} />
-          <View style={[styles.corner, styles.cornerBL]} />
-          <View style={[styles.corner, styles.cornerBR]} />
+        {/* 스캔 오버레이 */}
+        <View style={[StyleSheet.absoluteFill, styles.overlay]} pointerEvents="none">
+          <View style={styles.frame}>
+            {/* 모서리 마커 4개 */}
+            <View style={[styles.corner, styles.cornerTL]} />
+            <View style={[styles.corner, styles.cornerTR]} />
+            <View style={[styles.corner, styles.cornerBL]} />
+            <View style={[styles.corner, styles.cornerBR]} />
+          </View>
+          <Text style={styles.guideText}>바코드를 사각형 안에 맞춰주세요</Text>
+
+          {showZoomLabel && (
+            <View style={styles.zoomLabel}>
+              <Text style={styles.zoomLabelText}>{zoomLabel}</Text>
+            </View>
+          )}
         </View>
-        <Text style={styles.guideText}>바코드를 사각형 안에 맞춰주세요</Text>
+
+        {/* 플래시 토글 */}
+        <TouchableOpacity
+          onPress={() => setTorch((v) => !v)}
+          style={[styles.torchBtn, torch && styles.torchBtnActive]}
+        >
+          <View style={styles.torchInner}>
+            <Ionicons
+              name={torch ? 'flashlight' : 'flashlight-outline'}
+              size={15}
+              color="#fff"
+              style={{ marginRight: 6 }}
+            />
+            <Text style={[styles.torchText, torch && styles.torchTextActive]}>
+              {torch ? '끄기' : '켜기'}
+            </Text>
+          </View>
+        </TouchableOpacity>
       </View>
-
-      {/* 플래시 토글 */}
-      <TouchableOpacity
-        onPress={() => setTorch((v) => !v)}
-        style={[styles.torchBtn, torch && styles.torchBtnActive]}
-      >
-        <View style={styles.torchInner}>
-          <Ionicons
-            name={torch ? 'flashlight' : 'flashlight-outline'}
-            size={15}
-            color="#fff"
-            style={{ marginRight: 6 }}
-          />
-          <Text style={[styles.torchText, torch && styles.torchTextActive]}>
-            {torch ? '끄기' : '켜기'}
-          </Text>
-        </View>
-      </TouchableOpacity>
-    </View>
+    </GestureDetector>
   );
 }
 
@@ -179,4 +218,19 @@ const styles = StyleSheet.create({
   torchInner: { flexDirection: 'row', alignItems: 'center' },
   torchText: { color: COLORS.white, fontSize: 15, fontWeight: '600' },
   torchTextActive: { color: COLORS.white },
+  zoomLabel: {
+    position: 'absolute',
+    bottom: 100,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: RADIUS.pill,
+  },
+  zoomLabelText: {
+    color: COLORS.white,
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
 });
