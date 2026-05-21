@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity,
-  Alert, SafeAreaView, Modal, StyleSheet,
+  Alert, SafeAreaView, StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useScanStore, ScanRecord } from '@/store/scanStore';
-import ResultCard from '@/components/ResultCard';
+import HistoryDetailModal from '@/components/HistoryDetailModal';
 import IconWrap from '@/components/IconWrap';
 import { parseBarcode, formatBarcodeType } from '@/utils/barcodeParser';
 import { COLORS, RADIUS, SPACING, TYPE_COLORS } from '@/constants/theme';
@@ -66,24 +66,7 @@ export default function HistoryScreen() {
         }}
       />
 
-      <Modal
-        visible={!!selected}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setSelected(null)}
-      >
-        <View style={styles.modalBackdrop}>
-          {selected && (
-            <ResultCard
-              barcode={parseBarcode(selected.value)}
-              format={selected.format}
-              photoUri={selected.photoUri}
-              scannedAt={selected.scannedAt}
-              onClose={() => setSelected(null)}
-            />
-          )}
-        </View>
-      </Modal>
+      <HistoryDetailModal record={selected} onClose={() => setSelected(null)} />
     </SafeAreaView>
   );
 }
@@ -115,9 +98,4 @@ const styles = StyleSheet.create({
   cardTime: { fontSize: 11, color: COLORS.textSecondary, marginTop: 3 },
   cardRight: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   chevron: { fontSize: 20, color: COLORS.border, fontWeight: '300' },
-  modalBackdrop: {
-    flex: 1, justifyContent: 'flex-end',
-    backgroundColor: COLORS.modalOverlay,
-    paddingBottom: SPACING.xl,
-  },
 });
