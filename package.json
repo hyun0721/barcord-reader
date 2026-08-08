@@ -5,6 +5,7 @@
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
+    "android:build": "eas build --platform android --profile preview",
     "ios": "expo run:ios",
     "ios:device": "expo run:ios --device",
     "ios:iphone": "expo run:ios --device 00008140-001A504A00E3C01C",

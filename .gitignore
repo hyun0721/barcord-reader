@@ -16,6 +16,7 @@ yarn-error.*
 
 # IDE
 .vscode/
+.idea/
 
 # Claude Code
 .claude/
